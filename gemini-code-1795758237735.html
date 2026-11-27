@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Yes/No 匿名お題ルーム</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --primary: #2563eb;
+      --yes: #16a34a;
+      --no: #dc2626;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 680px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 6px 24px rgba(15, 23, 42, 0.05);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 1.5rem;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 1.15rem;
+    }
+
+    p.muted {
+      color: var(--muted);
+      margin: 0 0 16px;
+      line-height: 1.6;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 14px 16px;
+      font-size: 1.05rem;
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      background: #fff;
+      color: var(--text);
+    }
+
+    input[type="text"]:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    button {
+      border: none;
+      border-radius: 14px;
+      padding: 14px 20px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.06s ease, opacity 0.15s ease;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: #e2e8f0;
+      color: var(--text);
+    }
+
+    .btn-yes {
+      flex: 1;
+      min-width: 140px;
+      padding: 22px;
+      font-size: 1.35rem;
+      background: var(--yes);
+      color: #fff;
+    }
+
+    .btn-no {
+      flex: 1;
+      min-width: 140px;
+      padding: 22px;
+      font-size: 1.35rem;
+      background: var(--no);
+      color: #fff;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      background: #eff6ff;
+      color: var(--primary);
+    }
+
+    .topic-box {
+      background: #f8fafc;
+      border: 2px dashed #cbd5e1;
+      border-radius: 16px;
+      padding: 20px;
+      font-size: 1.3rem;
+      font-weight: 700;
+      text-align: center;
+      margin: 12px 0 18px;
+      word-break: break-word;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin: 16px 0;
+    }
+
+    .stat-card {
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-yes {
+      background: #dcfce7;
+      color: #14532d;
+    }
+
+    .stat-no {
+      background: #fee2e2;
+      color: #7f1d1d;
+    }
+
+    .stat-num {
+      font-size: 2.5rem;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+
+    .member-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .member-chip {
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: #f1f5f9;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 1. ロビー画面 -->
+    <div id="lobbyCard" class="card">
+      <span class="badge">iPad オンライン対応</span>
+      <h1>Yes / No 匿名お題ルーム</h1>
+      <p class="muted">
+        ランダムに選ばれた1人がお題を出し、参加者全員がYes/Noで回答します。全員の回答がそろうまで集計結果は非表示で、誰が投票したかは公開されません。
+      </p>
+
+      <div style="margin-bottom: 12px;">
+        <label style="display:block; font-weight:700; margin-bottom:6px;">あなたのニックネーム</label>
+        <input id="nicknameInput" type="text" placeholder="例：太郎" maxlength="20" />
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <label style="display:block; font-weight:700; margin-bottom:6px;">ルームID（新規作成は空欄でもOK）</label>
+        <input id="roomIdInput" type="text" placeholder="例：TEAM01" maxlength="20" />
+      </div>
+
+      <div class="row">
+        <button id="createRoomBtn" class="btn-primary" style="flex:1;">新しいルームを作る</button>
+        <button id="joinRoomBtn" class="btn-secondary" style="flex:1;">ルームに参加する</button>
+      </div>
+    </div>
+
+    <!-- 2. ルーム画面 -->
+    <div id="roomCard" class="card hidden">
+      <div class="row" style="justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div>
+          <span class="badge">ルームID: <strong id="currentRoomLabel"></strong></span>
+        </div>
+        <button id="leaveRoomBtn" class="btn-secondary" style="padding: 8px 14px; font-size: 0.9rem;">退出</button>
+      </div>
+
+      <div>
+        <strong>参加者（<span id="memberCount">0</span>人）</strong>
+        <div id="memberList" class="member-list"></div>
+      </div>
+
+      <hr style="border:none; border-top:1px solid var(--border); margin: 20px 0;" />
+
+      <!-- 状態A：お題待ち / ランダム選出フェーズ -->
+      <div id="phaseIdle">
+        <h2>お題を出す人をランダム選出</h2>
+        <p class="muted">参加者の中から1人をランダムに選びます（2人以上で開始できます）。</p>
+        <button id="pickSpeakerBtn" class="btn-primary" style="width:100%;">ランダムに1人選ぶ</button>
+      </div>
+
+      <!-- 状態B：選出された人がお題を入力するフェーズ -->
+      <div id="phaseTopicInput" class="hidden">
+        <span class="badge" style="background:#fef3c7; color:#92400e;">あなたが選ばれました！</span>
+        <h2 style="margin-top:10px;">お題を入力してください</h2>
+        <p class="muted">参加者全員（あなたも含む）がYesかNoで答えられる質問やテーマを書いてください。</p>
+        <textarea id="topicInput" rows="3" placeholder="例：休日は家でダラダラしたい？ / 実は秘密にしていることがある？" maxlength="120"></textarea>
+        <button id="submitTopicBtn" class="btn-primary" style="width:100%; margin-top:12px;">このお題で投票を開始する</button>
+      </div>
+
+      <!-- 状態C：他の人がお題を考えている待ち時間 -->
+      <div id="phaseWaitingTopic" class="hidden">
+        <h2>お題を決定中…</h2>
+        <p class="muted">選ばれた「<strong id="speakerNameWaiting"></strong>」さんがお題を入力しています。</p>
+      </div>
+
+      <!-- 状態D：投票フェーズ -->
+      <div id="phaseVoting" class="hidden">
+        <span class="badge">出題者：<span id="speakerNameVoting"></span></span>
+        <div id="topicDisplay" class="topic-box"></div>
+
+        <div id="voteButtons" class="row">
+          <button id="voteYesBtn" class="btn-yes">YES</button>
+          <button id="voteNoBtn" class="btn-no">NO</button>
+        </div>
+
+        <div id="votedNotice" class="hidden" style="text-align:center; padding: 14px; background:#f8fafc; border-radius:12px; font-weight:700;">
+          投票済みです（<span id="votedCountText">0</span> / <span id="totalVoterText">0</span> 人 回答完了）
+          <p class="muted" style="margin:6px 0 0; font-size:0.9rem;">全員が回答すると集計結果が表示されます。</p>
+        </div>
+      </div>
+
+      <!-- 状態E：全員回答完了・集計結果表示 -->
+      <div id="phaseResult" class="hidden">
+        <span class="badge" style="background:#dcfce7; color:#166534;">全員回答完了！集計結果</span>
+        <div id="resultTopicDisplay" class="topic-box"></div>
+
+        <div class="stats">
+          <div class="stat-card stat-yes">
+            <div>YES</div>
+            <div id="yesCountDisplay" class="stat-num">0</div>
+            <div>人</div>
+          </div>
+          <div class="stat-card stat-no">
+            <div>NO</div>
+            <div id="noCountDisplay" class="stat-num">0</div>
+            <div>人</div>
+          </div>
+        </div>
+
+        <p class="muted" style="text-align:center; font-size:0.9rem;">※ 誰がYesまたはNoに投票したかは記録・表示されません。</p>
+        <button id="nextRoundBtn" class="btn-primary" style="width:100%;">次のラウンドへ（ランダム再選出）</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc,
+      collection, onSnapshot, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // ★ ご自身の Firebase 構成に書き換えてください
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser = null;
+    let currentRoomId = null;
+    let unsubRoom = null;
+    let unsubParticipants = null;
+    let unsubVotes = null;
+
+    let participants = [];
+    let votes = [];
+    let roomData = null;
+
+    const $ = (id) => document.getElementById(id);
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, (m) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      }[m]));
+    }
+
+    signInAnonymously(auth).catch((err) => {
+      alert("認証エラー: Firebaseの匿名認証を有効にしてください。\n" + err.message);
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+    });
+
+    function generateRoomId() {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let code = "";
+      for (let i = 0; i < 6; i++) {
+        code += chars[Math.floor(Math.random() * chars.length)];
+      }
+      return code;
+    }
+
+    async function enterRoom(roomId, isCreate) {
+      if (!currentUser) {
+        alert("接続中です。数秒後に再度お試しください。");
+        return;
+      }
+      const nickname = $("nicknameInput").value.trim();
+      if (!nickname) {
+        alert("ニックネームを入力してください。");
+        return;
+      }
+
+      const cleanRoomId = (roomId || generateRoomId()).trim().toUpperCase();
+      const roomRef = doc(db, "rooms", cleanRoomId);
+      const snap = await getDoc(roomRef);
+
+      if (isCreate) {
+        if (snap.exists()) {
+          alert("そのルームIDはすでに使われています。別のIDにするか参加してください。");
+          return;
+        }
+        await setDoc(roomRef, {
+          status: "idle",
+          round: 1,
+          speakerUid: null,
+          speakerName: null,
+          topic: "",
+          yesCount: 0,
+          noCount: 0,
+          createdAt: serverTimestamp()
+        });
+      } else {
+        if (!snap.exists()) {
+          alert("指定されたルームが見つかりません。");
+          return;
+        }
+      }
+
+      currentRoomId = cleanRoomId;
+
+      await setDoc(doc(db, "rooms", currentRoomId, "participants", currentUser.uid), {
+        uid: currentUser.uid,
+        name: nickname,
+        joinedAt: serverTimestamp()
+      });
+
+      $("lobbyCard").classList.add("hidden");
+      $("roomCard").classList.remove("hidden");
+      $("currentRoomLabel").textContent = currentRoomId;
+
+      subscribeRoom();
+    }
+
+    function subscribeRoom() {
+      cleanupListeners();
+      const roomRef = doc(db, "rooms", currentRoomId);
+      const partsRef = collection(db, "rooms", currentRoomId, "participants");
+      const votesRef = collection(db, "rooms", currentRoomId, "votes");
+
+      unsubRoom = onSnapshot(roomRef, (docSnap) => {
+        if (!docSnap.exists()) return;
+        roomData = docSnap.data();
+        renderUI();
+      });
+
+      unsubParticipants = onSnapshot(partsRef, (snap) => {
+        participants = snap.docs.map((d) => d.data());
+        renderMembers();
+        checkAndRevealResults();
+        renderUI();
+      });
+
+      unsubVotes = onSnapshot(votesRef, (snap) => {
+        votes = snap.docs.map((d) => d.data());
+        checkAndRevealResults();
+        renderUI();
+      });
+    }
+
+    function cleanupListeners() {
+      if (unsubRoom) unsubRoom();
+      if (unsubParticipants) unsubParticipants();
+      if (unsubVotes) unsubVotes();
+    }
+
+    function renderMembers() {
+      $("memberCount").textContent = participants.length;
+      $("memberList").innerHTML = participants
+        .map((p) => `<span class="member-chip">${escapeHtml(p.name)}${p.uid === currentUser?.uid ? "（自分）" : ""}</span>`)
+        .join("");
+    }
+
+    async function checkAndRevealResults() {
+      if (!roomData || roomData.status !== "voting" || !currentRoomId) return;
+      if (participants.length === 0) return;
+
+      const participantUids = new Set(participants.map((p) => p.uid));
+      const validVotes = votes.filter((v) => participantUids.has(v.uid) && v.round === roomData.round);
+
+      if (validVotes.length >= participants.length) {
+        const yesCount = validVotes.filter((v) => v.choice === "yes").length;
+        const noCount = validVotes.filter((v) => v.choice === "no").length;
+
+        await updateDoc(doc(db, "rooms", currentRoomId), {
+          status: "revealed",
+          yesCount,
+          noCount
+        });
+      }
+    }
+
+    function renderUI() {
+      if (!roomData || !currentUser) return;
+
+      const phases = ["phaseIdle", "phaseTopicInput", "phaseWaitingTopic", "phaseVoting", "phaseResult"];
+      phases.forEach((id) => $(id).classList.add("hidden"));
+
+      if (roomData.status === "idle") {
+        $("phaseIdle").classList.remove("hidden");
+        $("pickSpeakerBtn").disabled = participants.length < 2;
+      } else if (roomData.status === "inputting_topic") {
+        if (roomData.speakerUid === currentUser.uid) {
+          $("phaseTopicInput").classList.remove("hidden");
+        } else {
+          $("phaseWaitingTopic").classList.remove("hidden");
+          $("speakerNameWaiting").textContent = roomData.speakerName || "参加者";
+        }
+      } else if (roomData.status === "voting") {
+        $("phaseVoting").classList.remove("hidden");
+        $("speakerNameVoting").textContent = roomData.speakerName || "参加者";
+        $("topicDisplay").textContent = roomData.topic || "";
+
+        const myVote = votes.find((v) => v.uid === currentUser.uid && v.round === roomData.round);
+        const participantUids = new Set(participants.map((p) => p.uid));
+        const roundVotesCount = votes.filter((v) => participantUids.has(v.uid) && v.round === roomData.round).length;
+
+        if (myVote) {
+          $("voteButtons").classList.add("hidden");
+          $("votedNotice").classList.remove("hidden");
+          $("votedCountText").textContent = roundVotesCount;
+          $("totalVoterText").textContent = participants.length;
+        } else {
+          $("voteButtons").classList.remove("hidden");
+          $("votedNotice").classList.add("hidden");
+        }
+      } else if (roomData.status === "revealed") {
+        $("phaseResult").classList.remove("hidden");
+        $("resultTopicDisplay").textContent = roomData.topic || "";
+        $("yesCountDisplay").textContent = roomData.yesCount ?? 0;
+        $("noCountDisplay").textContent = roomData.noCount ?? 0;
+      }
+    }
+
+    $("createRoomBtn").addEventListener("click", () => {
+      enterRoom($("roomIdInput").value, true);
+    });
+
+    $("joinRoomBtn").addEventListener("click", () => {
+      const id = $("roomIdInput").value.trim();
+      if (!id) {
+        alert("参加するルームIDを入力してください。");
+        return;
+      }
+      enterRoom(id, false);
+    });
+
+    $("leaveRoomBtn").addEventListener("click", async () => {
+      if (currentRoomId && currentUser) {
+        await deleteDoc(doc(db, "rooms", currentRoomId, "participants", currentUser.uid)).catch(() => {});
+      }
+      cleanupListeners();
+      currentRoomId = null;
+      roomData = null;
+      participants = [];
+      votes = [];
+      $("roomCard").classList.add("hidden");
+      $("lobbyCard").classList.remove("hidden");
+    });
+
+    $("pickSpeakerBtn").addEventListener("click", async () => {
+      if (!currentRoomId || participants.length < 2) return;
+      const picked = participants[Math.floor(Math.random() * participants.length)];
+      $("topicInput").value = "";
+      await updateDoc(doc(db, "rooms", currentRoomId), {
+        status: "inputting_topic",
+        speakerUid: picked.uid,
+        speakerName: picked.name,
+        topic: ""
+      });
+    });
+
+    $("submitTopicBtn").addEventListener("click", async () => {
+      if (!currentRoomId || !roomData) return;
+      const topic = $("topicInput").value.trim();
+      if (!topic) {
+        alert("お題を入力してください。");
+        return;
+      }
+      await updateDoc(doc(db, "rooms", currentRoomId), {
+        status: "voting",
+        topic,
+        yesCount: 0,
+        noCount: 0
+      });
+    });
+
+    async function castVote(choice) {
+      if (!currentRoomId || !currentUser || !roomData || roomData.status !== "voting") return;
+      await setDoc(doc(db, "rooms", currentRoomId, "votes", currentUser.uid), {
+        uid: currentUser.uid,
+        round: roomData.round,
+        choice,
+        votedAt: serverTimestamp()
+      });
+    }
+
+    $("voteYesBtn").addEventListener("click", () => castVote("yes"));
+    $("voteNoBtn").addEventListener("click", () => castVote("no"));
+
+    $("nextRoundBtn").addEventListener("click", async () => {
+      if (!currentRoomId || !roomData) return;
+      await updateDoc(doc(db, "rooms", currentRoomId), {
+        status: "idle",
+        round: (roomData.round || 1) + 1,
+        speakerUid: null,
+        speakerName: null,
+        topic: "",
+        yesCount: 0,
+        noCount: 0
+      });
+    });
+  </script>
+</body>
+</html>
